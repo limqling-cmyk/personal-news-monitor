@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World News Monitor</title>
+<style>
+:root {
+  --bg:       #F4F6FB;
+  --surface:  #FFFFFF;
+  --surface2: #EEF1F8;
+  --border:   #E0E4EF;
+  --text:     #111827;
+  --muted:    #6B7280;
+  --shadow:   0 1px 4px rgba(0,0,0,.07), 0 2px 12px rgba(0,0,0,.04);
+  --radius:   11px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 0 var(--border);
+}
+.logo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.header-btns { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.btn:hover { background: var(--surface2); color: var(--text); }
+.btn svg { width: 13px; height: 13px; }
+
+/* ── Tabs ────────────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  overflow-x: auto;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 10px;
+  scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 10px 13px;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .13s, border-color .13s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); font-weight: 600; }
+
+/* ── Legend bar ──────────────────────────────────────────────── */
+.legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--muted); cursor: pointer;
+  transition: color .12s;
+}
+.legend-item:hover { color: var(--text); }
+.legend-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Grid ────────────────────────────────────────────────────── */
+main { padding: 18px 20px 50px; max-width: 1440px; margin: 0 auto; }
+.section-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 12px; padding-left: 1px;
+}
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+/* ── Card ────────────────────────────────────────────────────── */
+.news-card {
+  display: block;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3.5px solid var(--cat-color, #6B7280);
+  border-radius: var(--radius);
+  padding: 13px 15px 13px 16px;
+  box-shadow: var(--shadow);
+  transition: box-shadow .15s, transform .1s;
+}
+.news-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,.10);
+  transform: translateY(-1px);
+}
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.card-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cat-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2.5px 8px;
+  border-radius: 100px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.card-date {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.card-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+.card-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-source {
+  font-size: 10.5px;
+  color: #A0A8BA;
+  margin-top: 7px;
+}
+
+/* ── States ──────────────────────────────────────────────────── */
+.state-box {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px;
+  color: var(--muted); font-size: 13px; gap: 10px;
+}
+.spinner {
+  width: 26px; height: 26px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--spin-color, #6366F1);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.retry-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px; cursor: pointer;
+}
+.retry-btn:hover { background: var(--surface2); }
+
+/* ── Settings drawer ─────────────────────────────────────────── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.35); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.drawer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 22px 20px 36px;
+  width: 100%; max-width: 480px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.12);
+}
+.drawer-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row:last-of-type { border-bottom: none; }
+.setting-label { font-size: 13.5px; }
+.setting-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.toggle-group {
+  display: flex; background: var(--surface2);
+  border-radius: 7px; padding: 2px; gap: 2px;
+}
+.tog {
+  padding: 5px 13px; border-radius: 5px; border: none;
+  background: none; color: var(--muted);
+  font-size: 12.5px; cursor: pointer; transition: all .12s;
+}
+.tog.on {
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); font-weight: 600;
+}
+.done-btn {
+  margin-top: 18px; width: 100%; padding: 11px;
+  border: none; border-radius: 9px;
+  background: #111827; color: #fff;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity .15s;
+}
+.done-btn:hover { opacity: .82; }
+
+/* ── AI Summary banner ───────────────────────────────────────── */
+.ai-banner {
+  background: linear-gradient(135deg,#EEF2FF 0%,#F0FDF4 100%);
+  border: 1px solid #C7D2FE;
+  border-left: 4px solid #6366F1;
+  border-radius: var(--radius);
+  padding: 14px 16px 13px;
+  margin-bottom: 14px;
+}
+.ai-banner-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+}
+.ai-badge {
+  background: #6366F1; color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 99px; letter-spacing: .4px;
+}
+.ai-tab-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+.ai-banner-text { font-size: 13.5px; line-height: 1.6; color: var(--text); }
+.ai-thinking {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 12px; color: var(--muted);
+}
+.ai-thinking .spinner { width: 13px; height: 13px; border-width: 2px; }
+.ai-error { font-size: 12px; color: #EF4444; }
+
+/* ── API key input (Settings) ────────────────────────────────── */
+.setting-row.col { flex-direction: column; align-items: flex-start; }
+.ai-provider-row {
+  display: flex; flex-wrap: wrap; gap: 5px; margin: 9px 0 8px;
+}
+.ai-provider-row .tog { padding: 4px 10px; font-size: 12px; }
+.api-key-input {
+  width: 100%; padding: 8px 11px;
+  border: 1px solid var(--border); border-radius: 7px;
+  font-size: 12.5px; font-family: var(--font);
+  background: var(--surface2); color: var(--text); outline: none;
+}
+.api-key-input:focus { border-color: #6366F1; box-shadow: 0 0 0 3px #EEF2FF; }
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 540px) {
+  main { padding: 12px 12px 40px; }
+  .news-grid { grid-template-columns: 1fr; gap: 9px; }
+  .logo { font-size: 14px; }
+  .legend-bar { padding: 8px 12px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo" id="logo">🌐 World News Monitor</span>
+  <div class="header-btns">
+    <button class="btn" onclick="reload()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M1 4v6h6M23 20v-6h-6"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+      <span data-i="refresh">Refresh</span>
+    </button>
+    <button class="btn" onclick="openSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <span data-i="settings">Settings</span>
+    </button>
+  </div>
+</header>
+
+<nav class="tab-bar" id="tab-bar"></nav>
+<div class="legend-bar" id="legend-bar"></div>
+
+<main>
+  <div class="section-label" id="section-label"></div>
+  <div class="ai-banner" id="ai-banner" style="display:none"></div>
+  <div class="news-grid" id="grid">
+    <div class="state-box">
+      <div class="spinner"></div>
+      <span data-i="loading">Loading...</span>
+    </div>
+  </div>
+</main>
+
+<!-- Settings -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="drawer">
+    <div class="drawer-title" data-i="settings-title">Settings 设置</div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label" data-i="lang-label">Language / 语言</div>
+      </div>
+      <div class="toggle-group">
+        <button class="tog" id="tog-en" onclick="setLang('en')">English</button>
+        <button class="tog" id="tog-zh" onclick="setLang('zh')">中文</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label" data-i="items-label">Items per source</div>
+        <div class="setting-sub" data-i="items-sub">Free API cap: 10</div>
+      </div>
+      <div class="toggle-group">
+        <button class="tog" id="tog-5"  onclick="setItems(5)">5</button>
+        <button class="tog" id="tog-10" onclick="setItems(10)">10</button>
+      </div>
+    </div>
+    <div class="setting-row col">
+      <div>
+        <div class="setting-label" data-i="ai-label">AI Brief (per tab)</div>
+        <div class="setting-sub" data-i="ai-sub">Free Groq key recommended · groq.com</div>
+      </div>
+      <div class="ai-provider-row">
+        <button class="tog" id="tog-openrouter" onclick="setProvider('openrouter')">OpenRouter</button>
+        <button class="tog" id="tog-groq"       onclick="setProvider('groq')">Groq</button>
+        <button class="tog" id="tog-openai"     onclick="setProvider('openai')">OpenAI</button>
+        <button class="tog" id="tog-anthropic"  onclick="setProvider('anthropic')">Claude</button>
+        <button class="tog" id="tog-gemini"     onclick="setProvider('gemini')">Gemini</button>
+      </div>
+      <input class="api-key-input" id="api-key-input" type="password"
+             placeholder="Paste API key here…" oninput="saveApiKey(this.value)">
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label" data-i="cache-label">Clear cache</div>
+        <div class="setting-sub" data-i="cache-sub">Force reload all tabs</div>
+      </div>
+      <button class="btn" onclick="clearAll()" data-i="clear-btn">Clear</button>
+    </div>
+    <button class="done-btn" onclick="closeSettings()" data-i="done">Done</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONTENT-TYPE CATEGORIES
+// Each article is auto-classified by keyword matching on title+desc.
+// Color = left-border + badge color.
+// ═══════════════════════════════════════════════════════════════
+const CAT = {
+  fed:        { en: 'Central Bank', zh: '央行',      color: '#6366F1' },
+  bonds:      { en: 'Bonds/Yields', zh: '美债收益率', color: '#EF4444' },
+  markets:    { en: 'Markets',      zh: '指数/市场',  color: '#F59E0B' },
+  earnings:   { en: 'Earnings',     zh: '业绩',      color: '#8B5CF6' },
+  company:    { en: 'Company',      zh: '公司行动',   color: '#10B981' },
+  forex:      { en: 'Currency',     zh: '汇率',      color: '#14B8A6' },
+  trade:      { en: 'Trade',        zh: '贸易/关税',  color: '#22C55E' },
+  commodities:{ en: 'Commodities',  zh: '大宗商品',   color: '#F97316' },
+  ai:         { en: 'AI',           zh: '人工智能',   color: '#A855F7' },
+  chips:      { en: 'Chips/Semi',   zh: '芯片/半导体', color: '#3B82F6' },
+  cyber:      { en: 'Cybersecurity',zh: '网络安全',   color: '#0EA5E9' },
+  product:    { en: 'Product',      zh: '产品发布',   color: '#06B6D4' },
+  geopolitics:{ en: 'Geopolitics',  zh: '地缘政治',   color: '#DC2626' },
+  policy:     { en: 'Policy/Law',   zh: '政策法规',   color: '#1D4ED8' },
+  energy:     { en: 'Energy',       zh: '能源',      color: '#D97706' },
+  economy:    { en: 'Economy',      zh: '经济',      color: '#059669' },
+  health:     { en: 'Health',       zh: '健康/医疗',  color: '#EC4899' },
+  news:       { en: 'News',         zh: '综合新闻',   color: '#9CA3AF' },
+};
+
+// Source-level fallback hints — when no keyword fires, use the feed source
+const SRC_HINT = {
+  'Bursa':       'markets',
+  'Ringgit':     'forex',
+  'Fed Reserve': 'fed',
+  'SEC':         'policy',
+  'CISA':        'cyber',
+  'White House': 'policy',
+  'Semiconductor':'chips',
+  'Fed Reserve': 'fed',
+  'Arab News':   'geopolitics',
+  'BBC ME':      'geopolitics',
+  'Al Jazeera':  'geopolitics',
+  'Xinhua':      'policy',
+  'Global Times':'geopolitics',
+  'NHK':         'economy',
+  'NDTV':        'politics',
+};
+
+// Keyword rules — order matters (first match wins)
+// Patterns are intentionally broad: catch the concept, not just one phrase
+const RULES = [
+  // Central Bank — any mention of a central bank action or key person
+  ['fed',         /(fed\b|federal reserve|fomc|jerome powell|kevin warsh|rate hike|rate cut|rate hold|interest rate|monetary policy|ecb\b|european central bank|boj\b|pboc\b|bnm\b|bank negara|central bank|quantitative eas|tapering|hawkish|dovish|basis points?|bps\b)/i],
+
+  // Bonds & Yields
+  ['bonds',       /(treasury yield|bond yield|10.year yield|10yr|t.bill|gilt\b|bund\b|sovereign debt|yield curve|fixed income|debt ceiling|yield rise|yield fall|bond market)/i],
+
+  // Trade & Tariffs
+  ['trade',       /(tariff|trade war|export control|import ban|import duty|wto\b|customs duty|trade deal|trade agreement|supply chain|embargo|trade deficit|trade surplus|free trade|digital trade|digital commerce|level playing field|fair competition)/i],
+
+  // Earnings & Financials
+  ['earnings',    /(earnings|quarterly result|q[1-4]\s*fy|revenue beat|revenue miss|\beps\b|profit margin|net income|operating profit|full.year result|annual result|guidance|profit warning|beats? estimate)/i],
+
+  // Company Actions
+  ['company',     /(acqui[rs]|merger|ipo\b|layoff|restruc|workforce cut|deal close|partnership|joint venture|spin.?off|buyback|share repurchase|\bdividend\b|ceo appoint|ceo resign|board appoint|privatisation|privatization|stake)/i],
+
+  // Forex & Currency
+  ['forex',       /(dollar index|usd\/|\/myr|ringgit|forex\b|exchange rate|currency depreci|currency strength|currency weaken|currency fall|yuan|renminbi|\byen\b|\beuro\b|pound sterling|\brupee\b|currency market|fx market)/i],
+
+  // Stock Markets & Indices
+  ['markets',     /(nasdaq|s&p 500|s&p500|dow jones|ftse\b|fbm klci|klci\b|nikkei|hang seng|\bsti\b|kospi|sensex|dax\b|cac 40|asx 200|bursa\b|market rally|market retreat|market decline|market gain|market close|global market|stock market|equity market|wall street|selloff|sell.off|bull market|bear market|winning streak|losing streak|selling pressure|buying pressure|market snap|four.day|three.day|five.day|snaps.*rally|snaps.*streak|market rebound|market slump)/i],
+
+  // Semiconductors & Chips
+  ['chips',       /(semiconductor|chip maker|chip stock|\btsmc\b|nvidia|intel\b|amd\b|qualcomm|arm holdings|broadcom|\bmicron\b|\basml\b|\bfab\b|foundry|gpu\b|\bhbm\b|chip export|chip ban|wafer)/i],
+
+  // AI & Machine Learning
+  ['ai',          /(artificial intelligence|\bopenai\b|anthropic|chatgpt|\bllm\b|large language model|gemini\b|gpt-[0-9]|deepmind|ai agent|generative ai|ai model|machine learning|deep learning)/i],
+
+  // Cybersecurity
+  ['cyber',       /(cybersecurity|cyber attack|ransomware|data breach|malware|phishing|\bcisa\b|crowdstrike|palo alto network|threat actor|zero.?day|hacker|hack|cyber incident)/i],
+
+  // Geopolitics & Conflict
+  ['geopolitics', /(\bwar\b|conflict|military strike|nato\b|\btroops\b|missile|airstrike|\battack\b|sanction|russia\b|ukraine|israel\b|\biran\b|taiwan strait|south china sea|\bcoup\b|cease.?fire|hostage|terrorist|pentagon)/i],
+
+  // Energy
+  ['energy',      /(oil price|crude oil|opec\b|brent\b|\bwti\b|natural gas|\blng\b|\bcoal\b|renewable energy|solar energy|wind power|nuclear power|energy crisis|electricity price|power grid|energy transition)/i],
+
+  // Policy & Legislation
+  ['policy',      /(regulation|legislation|congress\b|senate\b|parliament|white house|executive order|court ruling|law passed|election result|vote\b|administration|government policy|antitrust|data privacy|data protection)/i],
+
+  // Commodities
+  ['commodities', /(\bgold\b|gold price|\bsilver\b|\bcopper\b|lithium|\bcobalt\b|commodity|iron ore|alumin|\bzinc\b|platinum|palladium|precious metal)/i],
+
+  // Product Launches
+  ['product',     /(product launch|new product|new model|unveiled|new version|software release|firmware update|rollout)/i],
+
+  // Economy & Macro
+  ['economy',     /(\bgdp\b|inflation|consumer price index|\bcpi\b|\bppi\b|job(s)? report|unemployment|non.farm|trade deficit|current account|recession|stimulus|economic growth|economic outlook|economic data|gdp growth|digital economy|e.commerce)/i],
+
+  // Health
+  ['health',      /(\bvaccine\b|covid|pandemic|\bwho\b|fda\b|drug approval|clinical trial|healthcare|epidemic|mpox|bird flu)/i],
+];
+
+function classify(title, desc, source) {
+  const text = (title + ' ' + (desc || '')).toLowerCase();
+  for (const [cat, re] of RULES) {
+    if (re.test(text)) return cat;
+  }
+  // Fall back to source hint if no keyword matched
+  return SRC_HINT[source] || 'news';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// i18n
+// ═══════════════════════════════════════════════════════════════
+const T = {
+  en: {
+    logo: '🌐 World News Monitor',
+    refresh: 'Refresh', settings: 'Settings',
+    loading: 'Loading...', noitems: 'No articles found', retry: 'Retry',
+    'settings-title': 'Settings 设置', 'lang-label': 'Language / 语言',
+    'items-label': 'Items per source', 'items-sub': 'Free API cap: 10',
+    'ai-label': 'AI Brief (per tab)', 'ai-sub': 'Free Groq key recommended · groq.com',
+    'cache-label': 'Clear cache', 'cache-sub': 'Force reload all tabs',
+    'clear-btn': 'Clear', done: 'Done',
+    'ai-thinking': 'Analysing headlines…', 'ai-error': 'AI unavailable',
+    tabs: {
+      global:'🌐 Global', us:'🇺🇸 US', malaysia:'🇲🇾 Malaysia',
+      china:'🇨🇳 China', japan:'🇯🇵 Japan', europe:'🌍 Europe',
+      uk:'🇬🇧 UK', india:'🇮🇳 India', korea:'🇰🇷 Korea',
+      aus:'🇦🇺 Australia', gcc:'🌙 GCC',
+      finance:'💹 Finance', tech:'🤖 AI & Tech', other:'🌍 Other',
+    },
+    sections: {
+      global:'Global News', us:'United States', malaysia:'Malaysia',
+      china:'China', japan:'Japan', europe:'Europe',
+      uk:'United Kingdom', india:'India', korea:'South Korea',
+      aus:'Australia', gcc:'Gulf & Middle East',
+      finance:'Finance & Markets', tech:'AI & Technology', other:'Rest of World',
+    },
+  },
+  zh: {
+    logo: '🌐 全球新闻监控',
+    refresh: '刷新', settings: '设置',
+    loading: '加载中...', noitems: '未找到文章', retry: '重试',
+    'settings-title': 'Settings 设置', 'lang-label': 'Language / 语言',
+    'items-label': '每个来源条数', 'items-sub': '免费API: 最多10条',
+    'ai-label': 'AI 简报（每个标签）', 'ai-sub': '推荐免费 Groq Key · groq.com',
+    'cache-label': '清除缓存', 'cache-sub': '重新加载所有标签页',
+    'clear-btn': '清除', done: '完成',
+    'ai-thinking': 'AI 正在分析头条…', 'ai-error': 'AI 暂时不可用',
+    tabs: {
+      global:'🌐 全球', us:'🇺🇸 美国', malaysia:'🇲🇾 马来西亚',
+      china:'🇨🇳 中国', japan:'🇯🇵 日本', europe:'🌍 欧洲',
+      uk:'🇬🇧 英国', india:'🇮🇳 印度', korea:'🇰🇷 韩国',
+      aus:'🇦🇺 澳大利亚', gcc:'🌙 海湾地区',
+      finance:'💹 金融', tech:'🤖 科技', other:'🌍 其他',
+    },
+    sections: {
+      global:'全球新闻', us:'美国', malaysia:'马来西亚',
+      china:'中国', japan:'日本', europe:'欧洲',
+      uk:'英国', india:'印度', korea:'韩国',
+      aus:'澳大利亚', gcc:'海湾与中东',
+      finance:'金融与市场', tech:'人工智能与科技', other:'世界其他地区',
+    },
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════════════════════
+let lang  = localStorage.getItem('nw-lang')  || 'en';
+let items = parseInt(localStorage.getItem('nw-items') || '10');
+let activeTab = 'global';
+const cache   = {};
+
+// ═══════════════════════════════════════════════════════════════
+// Feeds
+// ═══════════════════════════════════════════════════════════════
+const gn = q => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
+
+const FEEDS = {
+  global: [
+    { name: 'BBC World',   url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+    { name: 'AP News',     url: gn('site:apnews.com when:1d') },
+    { name: 'Reuters',     url: gn('site:reuters.com world when:1d') },
+    { name: 'Guardian',    url: 'https://www.theguardian.com/world/rss' },
+    { name: 'Al Jazeera',  url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+    { name: 'CNN World',   url: gn('site:cnn.com world news when:1d') },
+  ],
+  us: [
+    { name: 'NPR',         url: 'https://feeds.npr.org/1001/rss.xml' },
+    { name: 'WSJ',         url: 'https://feeds.content.dowjones.io/public/rss/RSSUSnews' },
+    { name: 'PBS',         url: 'https://www.pbs.org/newshour/feeds/rss/headlines' },
+    { name: 'Axios',       url: 'https://api.axios.com/feed/' },
+    { name: 'Politico',    url: 'https://rss.politico.com/politics-news.xml' },
+    { name: 'The Hill',    url: 'https://thehill.com/news/feed' },
+    { name: 'ABC News',    url: 'https://feeds.abcnews.com/abcnews/topstories' },
+    { name: 'White House', url: 'https://www.whitehouse.gov/briefings-statements/feed/' },
+    { name: 'Fed Reserve', url: 'https://www.federalreserve.gov/feeds/press_all.xml' },
+  ],
+  malaysia: [
+    { name: 'The Star',    url: 'https://www.thestar.com.my/rss/News' },
+    { name: 'FMT',         url: 'https://www.freemalaysiatoday.com/feed/' },
+    { name: 'NST',         url: gn('site:nst.com.my when:1d') },
+    { name: 'Malaysiakini',url: gn('site:malaysiakini.com when:1d') },
+    { name: 'Bernama',     url: gn('site:bernama.com when:1d') },
+    { name: 'Bursa',       url: gn('Bursa Malaysia KLCI market when:1d') },
+    { name: 'Ringgit',     url: gn('ringgit USD MYR exchange when:1d') },
+  ],
+  china: [
+    { name: 'Xinhua',      url: gn('Xinhua China news when:1d') },
+    { name: 'SCMP',        url: gn('site:scmp.com when:2d') },
+    { name: 'Global Times',url: gn('site:globaltimes.cn when:1d') },
+    { name: 'Reuters CN',  url: gn('site:reuters.com China when:1d') },
+  ],
+  japan: [
+    { name: 'Nikkei Asia', url: gn('site:asia.nikkei.com when:3d') },
+    { name: 'Japan Times', url: gn('site:japantimes.co.jp when:2d') },
+    { name: 'NHK',         url: 'https://www3.nhk.or.jp/rss/news/cat0.xml' },
+    { name: 'Reuters JP',  url: gn('site:reuters.com Japan when:2d') },
+  ],
+  europe: [
+    { name: 'France 24',   url: 'https://www.france24.com/en/rss' },
+    { name: 'DW',          url: 'https://rss.dw.com/xml/rss-en-all' },
+    { name: 'EuroNews',    url: gn('site:euronews.com when:1d') },
+    { name: 'Reuters EU',  url: gn('site:reuters.com Europe eurozone when:1d') },
+    { name: 'Politico EU', url: gn('site:politico.eu when:1d') },
+  ],
+  uk: [
+    { name: 'BBC UK',      url: 'https://feeds.bbci.co.uk/news/uk/rss.xml' },
+    { name: 'Guardian UK', url: 'https://www.theguardian.com/uk/rss' },
+    { name: 'Sky News',    url: gn('site:news.sky.com when:1d') },
+    { name: 'Reuters UK',  url: gn('site:reuters.com Britain UK when:1d') },
+  ],
+  india: [
+    { name: 'NDTV',        url: 'https://feeds.feedburner.com/ndtvnews-top-stories' },
+    { name: 'The Hindu',   url: 'https://www.thehindu.com/feeder/default.rss' },
+    { name: 'Times of India', url: gn('site:timesofindia.com when:1d') },
+    { name: 'Reuters IN',  url: gn('site:reuters.com India when:1d') },
+  ],
+  korea: [
+    { name: 'Korea Herald', url: gn('site:koreaherald.com when:2d') },
+    { name: 'Yonhap',      url: gn('site:yna.co.kr when:1d') },
+    { name: 'Reuters KR',  url: gn('site:reuters.com "South Korea" when:2d') },
+  ],
+  aus: [
+    { name: 'ABC AU',      url: gn('site:abc.net.au news when:1d') },
+    { name: 'SMH',         url: gn('site:smh.com.au when:2d') },
+    { name: 'Reuters AU',  url: gn('site:reuters.com Australia when:2d') },
+  ],
+  gcc: [
+    { name: 'Al Jazeera',  url: gn('site:aljazeera.com "Middle East" when:2d') },
+    { name: 'The National',url: 'https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml' },
+    { name: 'Arab News',   url: gn('site:arabnews.com when:2d') },
+    { name: 'BBC ME',      url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml' },
+  ],
+  finance: [
+    { name: 'CNBC',        url: 'https://www.cnbc.com/id/100003114/device/rss/rss.html' },
+    { name: 'Yahoo Finance',url: 'https://finance.yahoo.com/rss/topstories' },
+    { name: 'FT',          url: 'https://www.ft.com/rss/home' },
+    { name: 'MarketWatch', url: gn('site:marketwatch.com markets when:1d') },
+    { name: 'Bloomberg',   url: gn('bloomberg.com markets finance economy when:1d') },
+    { name: 'Reuters Biz', url: gn('site:reuters.com business markets when:1d') },
+    { name: 'Fed Reserve', url: 'https://www.federalreserve.gov/feeds/press_all.xml' },
+    { name: 'SEC',         url: 'https://www.sec.gov/news/pressreleases.rss' },
+  ],
+  tech: [
+    { name: 'The Verge',   url: 'https://www.theverge.com/rss/index.xml' },
+    { name: 'Ars Technica',url: 'https://feeds.arstechnica.com/arstechnica/technology-lab' },
+    { name: 'VentureBeat', url: 'https://venturebeat.com/category/ai/feed/' },
+    { name: 'MIT Tech',    url: 'https://www.technologyreview.com/feed/' },
+    { name: 'Hacker News', url: 'https://hnrss.org/frontpage' },
+    { name: 'TechCrunch',  url: 'https://techcrunch.com/feed/' },
+    { name: 'Semiconductor',url: gn('semiconductor chip TSMC NVIDIA AI when:2d') },
+    { name: 'CISA',        url: 'https://www.cisa.gov/cybersecurity-advisories/all.xml' },
+  ],
+  other: [
+    { name: 'BBC Africa',  url: 'https://feeds.bbci.co.uk/news/world/africa/rss.xml' },
+    { name: 'BBC LatAm',   url: 'https://feeds.bbci.co.uk/news/world/latin_america/rss.xml' },
+    { name: 'BBC Asia',    url: 'https://feeds.bbci.co.uk/news/world/asia/rss.xml' },
+    { name: 'CNA',         url: 'https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml' },
+    { name: 'The Diplomat',url: 'https://thediplomat.com/feed/' },
+    { name: 'Africanews',  url: 'https://www.africanews.com/feed/' },
+  ],
+};
+
+const TAB_ORDER = [
+  'global','us','malaysia','china','japan','europe',
+  'uk','india','korea','aus','gcc','finance','tech','other'
+];
+
+// Tab accent color — used only for tab underline (cards use category color)
+const TAB_COLOR = {
+  global:'#3B82F6', us:'#EF4444', malaysia:'#10B981',
+  china:'#F43F5E', japan:'#EC4899', europe:'#6366F1',
+  uk:'#1D4ED8', india:'#F97316', korea:'#14B8A6',
+  aus:'#F59E0B', gcc:'#8B5CF6',
+  finance:'#22C55E', tech:'#A855F7', other:'#6B7280',
+};
+
+// ═══════════════════════════════════════════════════════════════
+// Boot
+// ═══════════════════════════════════════════════════════════════
+function init() {
+  applyLang();
+  buildTabBar();
+  buildLegend();
+  loadTab('global');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Lang
+// ═══════════════════════════════════════════════════════════════
+function applyLang() {
+  const t = T[lang];
+  document.querySelectorAll('[data-i]').forEach(el => {
+    const k = el.getAttribute('data-i');
+    if (t[k]) el.textContent = t[k];
+  });
+  document.getElementById('logo').textContent = t.logo;
+  document.getElementById('tog-en').classList.toggle('on', lang==='en');
+  document.getElementById('tog-zh').classList.toggle('on', lang==='zh');
+  buildTabBar(); buildLegend(); updateSectionLabel();
+}
+function setLang(l) {
+  lang = l; localStorage.setItem('nw-lang', l); applyLang();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Legend (category key)
+// ═══════════════════════════════════════════════════════════════
+function buildLegend() {
+  // Show the most important categories
+  const show = ['fed','bonds','markets','earnings','company','trade',
+                 'chips','ai','geopolitics','policy','energy','economy'];
+  document.getElementById('legend-bar').innerHTML = show.map(k => {
+    const c = CAT[k];
+    const label = lang === 'zh' ? c.zh : c.en;
+    return `<span class="legend-item" title="${label}">
+      <span class="legend-dot" style="background:${c.color}"></span>
+      ${label}
+    </span>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tabs
+// ═══════════════════════════════════════════════════════════════
+function buildTabBar() {
+  document.getElementById('tab-bar').innerHTML = TAB_ORDER.map(id => {
+    const active = id === activeTab;
+    const color  = TAB_COLOR[id];
+    return `<button class="tab${active?' active':''}" data-tab="${id}"
+      onclick="loadTab('${id}')"
+      style="${active ? `color:${color};border-bottom-color:${color}` : ''}"
+    >${T[lang].tabs[id]}</button>`;
+  }).join('');
+}
+
+function updateSectionLabel() {
+  const el = document.getElementById('section-label');
+  el.textContent = T[lang].sections[activeTab] || '';
+}
+
+async function loadTab(id) {
+  activeTab = id;
+  buildTabBar();
+  updateSectionLabel();
+  if (cache[id]) {
+    renderCards(cache[id]);
+    updateAiBanner(id, cache[id]);
+    return;
+  }
+  showLoading();
+  const result = await fetchAll(FEEDS[id] || []);
+  cache[id] = result;
+  renderCards(result);
+  updateAiBanner(id, result);
+}
+
+function reload() {
+  delete cache[activeTab];
+  loadTab(activeTab);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Fetch — multi-proxy strategy for real-time RSS
+//   1. corsproxy.io  — URL must NOT be encoded (raw append)
+//   2. allorigins.win — ~5 min cache, URL must be encoded
+//   3. rss2json.com  — JSON API, most reliable fallback
+// ═══════════════════════════════════════════════════════════════
+const PROXY1 = 'https://corsproxy.io/?';           // raw URL, no encode
+const PROXY2 = 'https://api.allorigins.win/get?url='; // encoded URL
+const PROXY3 = 'https://api.rss2json.com/v1/api.json?rss_url='; // JSON fallback
+
+function isXml(text) {
+  return text && (text.includes('<item') || text.includes('<entry') ||
+                  text.includes('<?xml') || text.includes('<rss') ||
+                  text.includes('<feed'));
+}
+
+async function fetchRaw(url) {
+  // 1. corsproxy.io — MUST use raw (unencoded) URL
+  try {
+    const r = await fetch(PROXY1 + url,
+                          { signal: AbortSignal.timeout(10000) });
+    if (r.ok) {
+      const text = await r.text();
+      if (isXml(text)) return text;
+    }
+  } catch {}
+  // 2. allorigins.win — returns { contents: "..." }
+  try {
+    const r = await fetch(PROXY2 + encodeURIComponent(url),
+                          { signal: AbortSignal.timeout(10000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d?.contents && isXml(d.contents)) return d.contents;
+    }
+  } catch {}
+  // 3. rss2json — returns JSON with items array; convert to synthetic XML
+  try {
+    const r = await fetch(PROXY3 + encodeURIComponent(url),
+                          { signal: AbortSignal.timeout(12000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d?.status === 'ok' && d.items?.length) {
+        // Synthesise minimal RSS XML from JSON so existing parser works
+        const items = d.items.map(it => `<item>
+          <title>${escXml(it.title || '')}</title>
+          <link>${escXml(it.link || '')}</link>
+          <pubDate>${it.pubDate || ''}</pubDate>
+          <description>${escXml(it.description || it.content || '')}</description>
+        </item>`).join('');
+        return `<?xml version="1.0"?><rss version="2.0"><channel>${items}</channel></rss>`;
+      }
+    }
+  } catch {}
+  return null;
+}
+
+function escXml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+
+function parseRss(xml, feedName) {
+  try {
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    // DOMParser parse error shows as <parsererror> element
+    if (doc.querySelector('parsererror')) {
+      const doc2 = new DOMParser().parseFromString(xml, 'text/html');
+      return parseDoc(doc2, feedName);
+    }
+    return parseDoc(doc, feedName);
+  } catch { return []; }
+}
+
+function parseDoc(doc, feedName) {
+  // Handles both RSS (<item>) and Atom (<entry>)
+  const els = [...doc.querySelectorAll('item, entry')].slice(0, items);
+  return els.map(el => {
+    // getElementsByTagName handles namespace prefixes (dc:date, content:encoded)
+    const txt = (...tags) => {
+      for (const t of tags) {
+        const node = el.getElementsByTagName(t)[0];
+        if (node?.textContent?.trim()) return node.textContent.trim();
+      }
+      return '';
+    };
+    // Link: Atom uses <link href="...">, RSS uses <link> text or <guid>
+    const linkEl = el.getElementsByTagName('link')[0];
+    const link = (linkEl?.getAttribute('href') ||
+                  linkEl?.textContent?.trim() ||
+                  txt('guid', 'id') || '').trim();
+    return {
+      title:  clean(txt('title')),
+      link,
+      date:   txt('pubDate', 'published', 'updated', 'dc:date', 'date'),
+      desc:   clean(stripHtml(
+                txt('description', 'summary', 'content:encoded', 'content')
+              )).slice(0, 280),
+      source: feedName,
+    };
+  }).filter(it => it.title.length > 5);
+}
+
+async function fetchFeed(feed) {
+  const xml = await fetchRaw(feed.url);
+  if (!xml) return [];
+  return parseRss(xml, feed.name);
+}
+
+async function fetchAll(feeds) {
+  const batches = await Promise.all(feeds.map(fetchFeed));
+  const all = batches.flat();
+  all.sort((a,b) => +new Date(b.date) - +new Date(a.date));
+  return dedup(all);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Story-identity dedup — ported from koala73/worldmonitor
+// shared/story-identity.js  (dual-view cosine similarity)
+// ═══════════════════════════════════════════════════════════════
+const DIM = 512;
+const STORY_SIM_THRESHOLD       = 0.615;
+const WEIGHT_TOKEN              = 2.0;
+const WEIGHT_BIGRAM             = 1.5;
+const WEIGHT_CHARGRAM           = 1.0;
+const BOOST_ENTITY              = 3.0;
+const BOOST_NUMBER              = 2.0;
+const CONTAIN_MIN_TOKENS        = 4;
+const CONTAIN_RATIO             = 0.9;
+const CONTAIN_SCORE             = 0.9;
+const MAX_ID_CHARS              = 300;
+const MAX_BUCKET                = 250;
+
+// Strip "- Malay Mail", "- Reuters", "| CNBC" etc. before vectorising
+const ATTR_SUFFIX_RES = [
+  /\s*[-–—|]\s*[\w\s.]+\.(?:com|org|net|co\.uk)\s*$/i,
+  /\s*[-–—|]\s*(?:reuters|ap news|bbc|cnn|al jazeera|france 24|dw news|pbs newshour|cbs news|nbc|abc|associated press|the guardian|cnbc|the national|malay mail|free malaysia today|new straits times|bernama|malaysiakini|businesstoday malaysia|klse screener|the star|nst online|the malaysian reserve|malaymail)\s*$/i,
+];
+function stripAttr(text) {
+  let s = text || '';
+  for (const re of ATTR_SUFFIX_RES) s = s.replace(re, '');
+  return s;
+}
+function normText(text) {
+  return (text || '').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+function isNonAscii(tok) {
+  for (let i = 0; i < tok.length; i++) if (tok.charCodeAt(i) > 127) return true;
+  return false;
+}
+// Tokens with entity/number boost flags (from original raw-case text)
+function contentTokens(text) {
+  const kept = [];
+  const clamped = stripAttr(text).slice(0, MAX_ID_CHARS);
+  for (const raw of clamped.split(/\s+/)) {
+    const clean = raw.replace(/[^\p{L}\p{N}]/gu, '');
+    if (!clean) continue;
+    const tok = clean.toLowerCase();
+    if (!isNonAscii(tok) && tok.length < 3) continue;
+    const boost = /\p{N}/u.test(clean) ? BOOST_NUMBER
+                : /^\p{Lu}/u.test(clean) ? BOOST_ENTITY : 1;
+    kept.push({ tok, boost });
+  }
+  return kept;
+}
+// Lightweight token set for inverted-index candidate generation
+function candidateTokens(text) {
+  const out = new Set();
+  for (const tok of normText(stripAttr(text).slice(0, MAX_ID_CHARS)).split(' ')) {
+    if (!tok) continue;
+    if (isNonAscii(tok)) {
+      out.add(tok);
+      for (let i = 0; i + 2 <= tok.length; i++) out.add(tok.slice(i, i + 2));
+    } else if (tok.length >= 3) {
+      out.add(tok);
+    }
+  }
+  return out;
+}
+// FNV-1a 32-bit hash with seed
+function fnv1a(str, seed) {
+  let h = (0x811c9dc5 ^ seed) >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h >>> 0;
+}
+function addFeature(vec, feat, w) {
+  const idx  = fnv1a(feat, 0) % DIM;
+  const sign = (fnv1a(feat, 0x9e3779b9) & 1) ? 1 : -1;
+  vec[idx] += sign * w;
+}
+function l2norm(vec) {
+  let n = 0; for (let i = 0; i < DIM; i++) n += vec[i] * vec[i];
+  n = Math.sqrt(n); if (n === 0) return null;
+  for (let i = 0; i < DIM; i++) vec[i] /= n; return vec;
+}
+// Build dual-view 512-dim story vector (uniform u + entity-boosted b)
+function storyVector(text) {
+  const tokens = contentTokens(text);
+  if (!tokens.length) return null;
+  const u = new Float64Array(DIM), b = new Float64Array(DIM);
+  for (let i = 0; i < tokens.length; i++) {
+    const { tok, boost } = tokens[i];
+    addFeature(u, `w:${tok}`, WEIGHT_TOKEN);
+    addFeature(b, `w:${tok}`, WEIGHT_TOKEN * boost);
+    if (i + 1 < tokens.length) {
+      const bg = `b:${tok} ${tokens[i+1].tok}`;
+      addFeature(u, bg, WEIGHT_BIGRAM); addFeature(b, bg, WEIGHT_BIGRAM);
+    }
+    if (isNonAscii(tok)) {
+      for (let j = 0; j + 2 <= tok.length; j++) {
+        const g = `c2:${tok.slice(j, j+2)}`; addFeature(u, g, WEIGHT_CHARGRAM); addFeature(b, g, WEIGHT_CHARGRAM);
+      }
+    }
+    if (tok.length >= 4) {
+      const p = `<${tok}>`;
+      for (let j = 0; j + 4 <= p.length; j++) {
+        const g = `c4:${p.slice(j, j+4)}`; addFeature(u, g, WEIGHT_CHARGRAM); addFeature(b, g, WEIGHT_CHARGRAM);
+      }
+    }
+  }
+  const un = l2norm(u), bn = l2norm(b);
+  if (!un || !bn) return null;
+  return { u: un, b: bn, t: new Set(tokens.map(e => e.tok)) };
+}
+function vdot(a, b) { let d = 0; for (let i = 0; i < a.length; i++) d += a[i] * b[i]; return d; }
+function cosineSim(a, b) {
+  if (!a || !b) return 0;
+  const score = Math.min(vdot(a.u, b.u), vdot(a.b, b.b));
+  // Containment rescue: truncated wire copy ≥90% subset = same story
+  if (score < CONTAIN_SCORE && a.t && b.t) {
+    const [small, large] = a.t.size <= b.t.size ? [a.t, b.t] : [b.t, a.t];
+    if (small.size >= CONTAIN_MIN_TOKENS) {
+      let sh = 0; for (const tok of small) if (large.has(tok)) sh++;
+      if (sh / small.size >= CONTAIN_RATIO) return CONTAIN_SCORE;
+    }
+  }
+  return score;
+}
+
+function dedup(arr) {
+  if (!arr.length) return arr;
+  const vectors   = arr.map(it => storyVector(it.title));
+  const tokenSets = arr.map(it => candidateTokens(it.title));
+
+  // Union-find (smaller index = root)
+  const par = arr.map((_, i) => i);
+  const find = x => { let r = x; while (par[r] !== r) r = par[r]; while (par[x] !== r) { const nx = par[x]; par[x] = r; x = nx; } return r; };
+  const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) par[Math.max(ra,rb)] = Math.min(ra,rb); };
+
+  // 1. Exact-text pre-union (verbatim syndication)
+  const byExact = new Map();
+  for (let i = 0; i < arr.length; i++) {
+    const norm = normText(stripAttr(arr[i].title));
+    if (!norm) continue;
+    const first = byExact.get(norm);
+    if (first === undefined) byExact.set(norm, i); else union(first, i);
+  }
+
+  // 2. Inverted-index candidate scoring
+  const inv = new Map();
+  for (let i = 0; i < arr.length; i++)
+    for (const tok of tokenSets[i]) { const b = inv.get(tok); if (b) b.push(i); else inv.set(tok, [i]); }
+
+  for (let i = 0; i < arr.length; i++) {
+    if (!vectors[i]) continue;
+    const cands = new Set();
+    for (const tok of tokenSets[i]) { const b = inv.get(tok); if (b && b.length <= MAX_BUCKET) for (const j of b) if (j > i) cands.add(j); }
+    for (const j of cands) {
+      if (find(i) === find(j)) continue;
+      if (cosineSim(vectors[i], vectors[j]) >= STORY_SIM_THRESHOLD) union(i, j);
+    }
+  }
+
+  // Keep only the root of each cluster
+  return arr.filter((_, i) => find(i) === i);
+}
+
+function stripHtml(s) {
+  return s.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+}
+function clean(s) {
+  return s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+          .replace(/&nbsp;/g,' ').replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(n))
+          .replace(/&quot;/g,'"').replace(/&#39;/g,"'").trim();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════════════════════════
+function showLoading() {
+  document.getElementById('grid').innerHTML =
+    `<div class="state-box"><div class="spinner"></div><span>${T[lang].loading}</span></div>`;
+}
+
+function renderCards(data) {
+  const t = T[lang];
+  if (!data.length) {
+    document.getElementById('ai-banner').style.display = 'none';
+    document.getElementById('grid').innerHTML =
+      `<div class="state-box"><span style="font-size:26px">📭</span>
+       <span>${t.noitems}</span>
+       <button class="retry-btn" onclick="reload()">${t.retry}</button></div>`;
+    return;
+  }
+
+  // AI banner placeholder — hidden until key exists, then filled async
+  const banner = document.getElementById('ai-banner');
+  banner.style.display = aiKey ? '' : 'none';
+  banner.innerHTML = '';
+
+  document.getElementById('grid').innerHTML = data.map(item => {
+    const catKey = classify(item.title, item.desc, item.source);
+    const cat    = CAT[catKey] || CAT.news;
+    const label  = lang === 'zh' ? cat.zh : cat.en;
+    return `<a class="news-card"
+        href="${esc(item.link)}" target="_blank" rel="noopener noreferrer"
+        style="--cat-color:${cat.color}">
+      <div class="card-top">
+        <div class="card-badges">
+          <span class="cat-badge" style="background:${cat.color}">${esc(label)}</span>
+        </div>
+        <span class="card-date">${fmtDate(item.date)}</span>
+      </div>
+      <div class="card-title">${esc(item.title)}</div>
+      ${item.desc ? `<div class="card-desc">${esc(item.desc)}</div>` : ''}
+      <div class="card-source">📰 ${esc(item.source)}</div>
+    </a>`;
+  }).join('');
+}
+
+function fmtDate(raw) {
+  if (!raw) return '';
+  try {
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw.slice(0,10);
+    const min = Math.round((Date.now()-d)/60000);
+    if (min < 2)   return lang==='zh' ? '刚刚'    : 'just now';
+    if (min < 60)  return lang==='zh' ? `${min}分钟前`  : `${min}m ago`;
+    const hr = Math.round(min/60);
+    if (hr  < 24)  return lang==='zh' ? `${hr}小时前`   : `${hr}h ago`;
+    const dy = Math.round(hr/24);
+    if (dy  < 7)   return lang==='zh' ? `${dy}天前`     : `${dy}d ago`;
+    return d.toLocaleDateString(lang==='zh'?'zh-CN':'en-US',{month:'short',day:'numeric'});
+  } catch { return ''; }
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AI Summary
+// ═══════════════════════════════════════════════════════════════
+const AI_PROVIDERS = {
+  openrouter: {
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    model: 'deepseek/deepseek-chat-v3-0324:free',  // free tier
+    auth: key => ({ Authorization: `Bearer ${key}`,
+                    'HTTP-Referer': location.href, 'X-Title': 'World News Monitor' }),
+    body: (msgs, model) => ({ model, messages: msgs, max_tokens: 120, temperature: 0.3 }),
+    parse: d => d.choices?.[0]?.message?.content?.trim(),
+  },
+  groq: {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'llama-3.3-70b-versatile',
+    auth: key => ({ Authorization: `Bearer ${key}` }),
+    body: (msgs, model) => ({ model, messages: msgs, max_tokens: 120, temperature: 0.3 }),
+    parse: d => d.choices?.[0]?.message?.content?.trim(),
+  },
+  openai: {
+    url: 'https://api.openai.com/v1/chat/completions',
+    model: 'gpt-4o-mini',
+    auth: key => ({ Authorization: `Bearer ${key}` }),
+    body: (msgs, model) => ({ model, messages: msgs, max_tokens: 120, temperature: 0.3 }),
+    parse: d => d.choices?.[0]?.message?.content?.trim(),
+  },
+  anthropic: {
+    url: 'https://api.anthropic.com/v1/messages',
+    model: 'claude-haiku-4-5',
+    auth: key => ({ 'x-api-key': key, 'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true' }),
+    body: (msgs, model) => ({
+      model, max_tokens: 120,
+      system: msgs[0].content,
+      messages: [{ role: 'user', content: msgs[1].content }],
+    }),
+    parse: d => d.content?.[0]?.text?.trim(),
+  },
+  gemini: {
+    url: key => `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+    model: null,
+    auth: () => ({}),
+    body: (msgs) => ({ contents: [{ parts: [{ text: msgs[0].content + '\n\n' + msgs[1].content }] }],
+                       generationConfig: { maxOutputTokens: 120, temperature: 0.3 } }),
+    parse: d => d.candidates?.[0]?.content?.parts?.[0]?.text?.trim(),
+  },
+};
+
+let aiProvider = localStorage.getItem('nw-ai-provider') || 'groq';
+let aiKey      = localStorage.getItem('nw-ai-key') || '';
+
+// Per-tab summary cache: { [tabId]: { text, ts } }
+const summaryCache = {};
+const SUMMARY_TTL  = 15 * 60 * 1000; // 15 minutes
+
+function buildAiPrompt(tabName, articles) {
+  const today = new Date().toISOString().split('T')[0];
+  const langName = lang === 'zh' ? 'Chinese (Simplified)' : 'English';
+  const headlines = articles.slice(0, 20)
+    .map((a, i) => `${i+1}. ${a.title}`)
+    .join('\n');
+  const system = `Today is ${today}. You are a concise financial market analyst writing for investors. Each headline below is a SEPARATE, UNRELATED story. Rules: pick the single most market-moving development; write exactly 2 sentences under 60 words total; lead with WHAT happened and name the specific asset/index/company/policy; no bullet points, no preamble. Output in ${langName}.`;
+  const user = `Headlines from [${tabName}]:\n${headlines}`;
+  return [{ role: 'system', content: system }, { role: 'user', content: user }];
+}
+
+async function callAi(msgs) {
+  const p = AI_PROVIDERS[aiProvider];
+  if (!p || !aiKey) return null;
+  const url = typeof p.url === 'function' ? p.url(aiKey) : p.url;
+  const headers = { 'Content-Type': 'application/json', ...p.auth(aiKey) };
+  const body = JSON.stringify(p.body(msgs, p.model));
+  try {
+    const r = await fetch(url, { method: 'POST', headers, body,
+                                  signal: AbortSignal.timeout(20000) });
+    if (!r.ok) return null;
+    return p.parse(await r.json()) || null;
+  } catch { return null; }
+}
+
+async function updateAiBanner(tabId, articles) {
+  const banner = document.getElementById('ai-banner');
+  if (!banner) return;
+  if (!aiKey) { banner.style.display = 'none'; return; }
+
+  // Cache hit
+  const hit = summaryCache[tabId];
+  if (hit && (Date.now() - hit.ts) < SUMMARY_TTL) {
+    showAiText(banner, tabId, hit.text); return;
+  }
+
+  // Show spinner
+  const t = T[lang];
+  const tabLabel = t.sections?.[tabId] || tabId;
+  banner.style.display = '';
+  banner.innerHTML = `
+    <div class="ai-banner-header">
+      <span class="ai-badge">✦ AI Brief</span>
+      <span class="ai-tab-label">${esc(tabLabel)}</span>
+    </div>
+    <div class="ai-thinking"><div class="spinner"></div>${t['ai-thinking']}</div>`;
+
+  const msgs = buildAiPrompt(tabLabel, articles);
+  const text = await callAi(msgs);
+
+  if (text) {
+    summaryCache[tabId] = { text, ts: Date.now() };
+    showAiText(banner, tabId, text);
+  } else {
+    banner.innerHTML = `
+      <div class="ai-banner-header">
+        <span class="ai-badge">✦ AI Brief</span>
+        <span class="ai-tab-label">${esc(tabLabel)}</span>
+      </div>
+      <div class="ai-error">${t['ai-error']} — check API key in Settings</div>`;
+  }
+}
+
+function showAiText(banner, tabId, text) {
+  const tabLabel = T[lang].sections?.[tabId] || tabId;
+  banner.innerHTML = `
+    <div class="ai-banner-header">
+      <span class="ai-badge">✦ AI Brief</span>
+      <span class="ai-tab-label">${esc(tabLabel)}</span>
+    </div>
+    <div class="ai-banner-text">${esc(text)}</div>`;
+  banner.style.display = '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Settings
+// ═══════════════════════════════════════════════════════════════
+function openSettings() {
+  document.getElementById('overlay').classList.add('open');
+  [5,10].forEach(n => document.getElementById(`tog-${n}`).classList.toggle('on', n===items));
+  // Restore AI settings UI
+  ['openrouter','groq','openai','anthropic','gemini'].forEach(p =>
+    document.getElementById(`tog-${p}`).classList.toggle('on', p===aiProvider));
+  document.getElementById('api-key-input').value = aiKey ? '••••••••' : '';
+}
+function setProvider(p) {
+  aiProvider = p; localStorage.setItem('nw-ai-provider', p);
+  ['openrouter','groq','openai','anthropic','gemini'].forEach(id =>
+    document.getElementById(`tog-${id}`).classList.toggle('on', id===p));
+  Object.keys(summaryCache).forEach(k => delete summaryCache[k]); // invalidate
+}
+function saveApiKey(val) {
+  if (val === '••••••••') return;
+  aiKey = val.trim(); localStorage.setItem('nw-ai-key', aiKey);
+  Object.keys(summaryCache).forEach(k => delete summaryCache[k]); // invalidate
+}
+function closeSettings() {
+  document.getElementById('overlay').classList.remove('open');
+}
+function setItems(n) {
+  items = n; localStorage.setItem('nw-items', n);
+  [5,10].forEach(i => document.getElementById(`tog-${i}`).classList.toggle('on', i===n));
+}
+function clearAll() {
+  Object.keys(cache).forEach(k => delete cache[k]);
+  closeSettings(); loadTab(activeTab);
+}
+
+init();
+</script>
+</body>
+</html>
